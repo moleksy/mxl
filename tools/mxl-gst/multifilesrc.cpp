@@ -285,7 +285,7 @@ main( int argc, char **argv )
     std::signal( SIGINT, &signal_handler );
     std::signal( SIGTERM, &signal_handler );
 
-    CLI::App app( "mxl-gst-videotestsrcv2" );
+    CLI::App app( "mxl-gst-multifilesrc" );
 
     std::string flowConfigFile;
     auto flowConfigFileOpt = app.add_option( "-f, --flow-config-file", flowConfigFile, "The json file which contains the NMOS Flow configuration" );

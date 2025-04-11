@@ -17,8 +17,8 @@ add_executable(mxl-gst-videotestsrc
     ../../lib/src/internal/FlowParser.cpp
 )
 
-add_executable(mxl-gst-videotestsrcv2
-    videotestsrcv2.cpp
+add_executable(mxl-gst-multifilesrc
+    multifilesrc.cpp
     ../../lib/src/internal/FlowParser.cpp
 )
 target_link_libraries(mxl-gst-videotestsrc PRIVATE
@@ -30,7 +30,7 @@ target_link_libraries(mxl-gst-videotestsrc PRIVATE
     PkgConfig::gstreamer-app
     PkgConfig::gstreamer-video
 )
-target_link_libraries(mxl-gst-videotestsrcv2 PRIVATE
+target_link_libraries(mxl-gst-multifilesrc PRIVATE
     mxl
     stduuid
     CLI11::CLI11
@@ -56,12 +56,12 @@ target_link_libraries(mxl-gst-videosink PRIVATE
     PkgConfig::gstreamer-video
 )
 
-set_target_properties(mxl-gst-videosink mxl-gst-videotestsrc mxl-gst-videotestsrcv2 PROPERTIES
+set_target_properties(mxl-gst-videosink mxl-gst-videotestsrc mxl-gst-multifilesrc PROPERTIES
     INSTALL_RPATH "$ORIGIN/../lib"
 )
 
 # Install targets
-install(TARGETS mxl-gst-videosink mxl-gst-videotestsrc mxl-gst-videotestsrcv2
+install(TARGETS mxl-gst-videosink mxl-gst-videotestsrc mxl-gst-multifilesrc
     RUNTIME DESTINATION bin
 )
 

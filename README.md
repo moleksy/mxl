@@ -228,6 +228,71 @@ Options:
   -p,--pattern TEXT [smpte]   Test pattern to use. For available options see https://gstreamer.freedesktop.org/documentation/videotestsrc/index.html?gi-language=c#GstVideoTestSrcPattern
 ```
 
+
+
+### mxl-gst-multifilesrc
+A binary that uses the gstreamer element 'multifilesrc' to produce loop video (previously transcoded using FFMPEG) which will be pushed to a MXL Flow. The video format is configured from a NMOS Flow json file. Here's an example of such file :
+```json
+{
+    "description": "MXL Test File",
+    "id": "5fbec3b1-1b0f-417d-9059-8b94a47197ed",
+    "tags": {},
+    "source": "/home/ubuntu/test-files/test.v210",
+    "format": "urn:x-nmos:format:video",
+    "label": "MXL Test File",
+    "parents": [],
+    "media_type": "video/v210",
+    "grain_rate": {
+        "numerator": 30,
+	"denominator": 1
+    },
+    "frame_width": 640,
+    "frame_height": 360,
+    "interlace_mode": "interlaced_tff",
+    "colorspace": "BT709",
+    "components": [
+        {
+            "name": "Y",
+            "width": 640,
+            "height": 360,
+            "bit_depth": 10
+        },
+        {
+            "name": "Cb",
+            "width": 320,
+            "height": 360,
+            "bit_depth": 10
+        },
+        {
+            "name": "Cr",
+            "width": 320,
+            "height": 360,
+            "bit_depth": 10
+        }
+    ]
+}
+```
+
+The file `/home/ubuntu/test-files/test.v210` is produced using the next ffmpeg command:
+
+```bash
+ffmpeg -t 30 -i cowgirls-prores-5994fps.mov -map 0:0 -c:v v210 -f rawvideo -pix_fmt yuv422p10le -flags +ilme+ildct -field_order tt -r 30/1 -s 640x360 test.v210
+```
+Note that the parameters, such as resolution and bitrate are the same in the  NMOS Flow json file.
+
+```bash
+mxl-gst-videotestsrc
+Usage: ./build/Linux-GCC-Release/tools/mxl-gst/mxl-gst-multifilesrc [OPTIONS]
+
+Options:
+  -h,--help                   Print this help message and exit
+  -f,--flow-config-file TEXT REQUIRED
+                              The json file which contains the NMOS Flow configuration
+  -d,--domain TEXT:DIR REQUIRED
+                              The MXL domain directory
+  -p,--pattern TEXT [smpte]   Test pattern to use. For available options see https://gstreamer.freedesktop.org/documentation/videotestsrc/index.html?gi-language=c#GstVideoTestSrcPattern
+```
+
 ### mxl-gst-videosink
 A binary that reads from a MXL Flow and display the flow using the gstreamer element 'autovideosink'.
 
