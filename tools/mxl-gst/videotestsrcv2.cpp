@@ -3,6 +3,7 @@
 
 #include <CLI/CLI.hpp>
 #include <csignal>
+#include <cstdio>
 #include <gst/app/gstappsink.h>
 #include <gst/gst.h>
 #include <mxl/flow.h>
@@ -25,6 +26,7 @@ struct GstreamerPipelineConfig
     Rational frame_rate{ 30, 1 };
     uint64_t pattern{ 0 };
     std::string textoverlay{ "EBU DMF MXL" };
+    std::string source;
 };
 
 static const std::unordered_map<std::string, uint64_t> pattern_map = {
@@ -62,13 +64,65 @@ public:
     {
         gst_init( nullptr, nullptr );
 
-        _videotestsrc = gst_element_factory_make( "videotestsrc", "videotestsrc" );
-        if ( !_videotestsrc )
+        _source = gst_element_factory_make( "multifilesrc", "file-source" );
+        // Set source file
+
+        if ( !_source )
         {
-            throw std::runtime_error( "Gstreamer: 'videotestsrc' could not be created." );
+            throw std::runtime_error( "Gstreamer: '_source' could not be created." );
         }
 
-        g_object_set( _videotestsrc, "is-live", TRUE, "pattern", config.pattern, nullptr );
+        // g_object_set( _videotestsrc, "is-live", TRUE, "pattern", config.pattern, nullptr );
+
+        // printf( "source2: %s\n", config.source.c_str() );
+
+        g_object_set( G_OBJECT( _source ), "location", config.source.c_str(), "loop", true, NULL );
+
+        _rawparse = gst_element_factory_make( "rawvideoparse", "parser" );
+
+        if ( !_rawparse )
+        {
+            throw std::runtime_error( "Gstreamer: '_rawparse' could not be created." );
+        }
+
+        g_object_set( G_OBJECT( _rawparse ),
+                      "format",
+                      21,
+                      "interlaced",
+                      true,
+                      "top-field-first",
+                      true,
+                      "width",
+                      config.frame_width, // Width in pixels
+                      "height",
+                      config.frame_height, // Height in pixels
+                      "framerate",
+                      30,
+                      1, // 30 fps
+                      NULL );
+
+        _capsfilter = gst_element_factory_make( "capsfilter", "v210-caps" );
+
+        _videorate = gst_element_factory_make( "videorate", "rate" );
+        // Set V210 caps
+        GstCaps *caps = gst_caps_new_simple( "video/x-raw",
+                                             "format",
+                                             G_TYPE_STRING,
+                                             "v210",
+                                             "width",
+                                             G_TYPE_INT,
+                                             config.frame_width,
+                                             "height",
+                                             G_TYPE_INT,
+                                             config.frame_height,
+                                             "framerate",
+                                             GST_TYPE_FRACTION,
+                                             30,
+                                             1,
+                                             nullptr );
+
+        g_object_set( G_OBJECT( _capsfilter ), "caps", caps, nullptr );
+        gst_caps_unref( caps );
 
         _clockoverlay = gst_element_factory_make( "clockoverlay", "clockoverlay" );
         if ( !_clockoverlay )
@@ -123,6 +177,13 @@ public:
                       16,
                       nullptr );
 
+        _sink = gst_element_factory_make( "autovideosink", "video-sink" );
+
+        if ( !_sink )
+        {
+            throw std::runtime_error( "Gstreamer: '_sink' could not be created." );
+        }
+
         // Create the empty pipeline
         _pipeline = gst_pipeline_new( "sink-pipeline" );
         if ( !_pipeline )
@@ -131,13 +192,15 @@ public:
         }
 
         // Build the pipeline
-        gst_bin_add_many( GST_BIN( _pipeline ), _videotestsrc, _videoconvert, _videoscale, _clockoverlay, _textoverlay, _appsink, nullptr );
+        gst_bin_add_many( GST_BIN( _pipeline ), _source, _rawparse, _videoconvert, _videoscale, _clockoverlay, _textoverlay, _appsink, nullptr );
         if ( !_pipeline )
         {
             throw std::runtime_error( "Gstreamer: could not add elements to the pipeline" );
         }
-        if ( gst_element_link_many( _videotestsrc, _videoconvert, _videoscale, _clockoverlay, _textoverlay, _appsink, nullptr ) != TRUE )
+
+        if ( gst_element_link_many( _source, _rawparse, _videoconvert, _videoscale, _clockoverlay, _textoverlay, _appsink, nullptr ) != TRUE )
         {
+
             throw std::runtime_error( "Gstreamer: elements could not be linked." );
         }
     }
@@ -209,6 +272,11 @@ private:
     GstElement *_textoverlay{ nullptr };
     GstElement *_appsink{ nullptr };
     GstElement *_pipeline{ nullptr };
+    GstElement *_source{ nullptr };
+    GstElement *_rawparse{ nullptr };
+    GstElement *_capsfilter{ nullptr };
+    GstElement *_videorate{ nullptr };
+    GstElement *_sink{ nullptr };
 };
 
 int
@@ -240,6 +308,10 @@ main( int argc, char **argv )
     auto textOverlayOpt = app.add_option( "-t,--overlay-text", textOverlay, "Change the text overlay of the test source" );
     textOverlayOpt->default_val( "EBU DMF MXL" );
 
+    std::string source;
+    auto sourceOpt = app.add_option( "-s,--source", source, "The MXL source" );
+    sourceOpt->required( true );
+
     CLI11_PARSE( app, argc, argv );
 
     std::ifstream file( flowConfigFile, std::ios::in | std::ios::binary );
@@ -260,8 +332,8 @@ main( int argc, char **argv )
         .frame_rate = frame_rate,
         .pattern = pattern_map.at( pattern ),
         .textoverlay = textOverlay,
+        .source = source,
     };
-
     GstreamerPipeline gst_pipeline( gst_config );
 
     mxlStatus ret;
