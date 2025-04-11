@@ -281,7 +281,8 @@ ffmpeg -t 30 -i cowgirls-prores-5994fps.mov -map 0:0 -c:v v210 -f rawvideo -pix_
 Note that the parameters, such as resolution and bitrate are the same in the  NMOS Flow json file.
 
 ```bash
-mxl-gst-videotestsrc
+mxl-gst-multifilesrc
+
 Usage: ./build/Linux-GCC-Release/tools/mxl-gst/mxl-gst-multifilesrc [OPTIONS]
 
 Options:

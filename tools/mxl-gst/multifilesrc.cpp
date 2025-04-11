@@ -9,6 +9,7 @@
 #include <mxl/flow.h>
 #include <mxl/mxl.h>
 #include <mxl/time.h>
+#include <string>
 #include <uuid.h>
 
 std::sig_atomic_t volatile g_exit_requested = 0;
@@ -308,9 +309,9 @@ main( int argc, char **argv )
     auto textOverlayOpt = app.add_option( "-t,--overlay-text", textOverlay, "Change the text overlay of the test source" );
     textOverlayOpt->default_val( "EBU DMF MXL" );
 
-    std::string source;
-    auto sourceOpt = app.add_option( "-s,--source", source, "The MXL source" );
-    sourceOpt->required( true );
+    // std::string source;
+    // auto sourceOpt = app.add_option( "-s,--source", source, "The MXL source" );
+    // sourceOpt->required( true );
 
     CLI11_PARSE( app, argc, argv );
 
@@ -332,7 +333,7 @@ main( int argc, char **argv )
         .frame_rate = frame_rate,
         .pattern = pattern_map.at( pattern ),
         .textoverlay = textOverlay,
-        .source = source,
+        .source = descriptor_parser.get<std::string>( "source" ),
     };
     GstreamerPipeline gst_pipeline( gst_config );
 
