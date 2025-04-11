@@ -12,13 +12,13 @@
         "apparmor:unconfined",
         "--sysctl",
         "kernel.shm_rmid_forced=1",
-        "--shm-size=1g",
-        "-e",
-        "NVIDIA_DRIVER_CAPABILITIES=all",
-        "-e",
-        "NVIDIA_VISIBLE_DEVICES=all",
-        "--gpus",
-        "all"
+        //"--shm-size=1g",
+        //"-e",
+        //"NVIDIA_DRIVER_CAPABILITIES=all",
+        //"-e",
+        //"NVIDIA_VISIBLE_DEVICES=all",
+        //"--gpus",
+        //"all"
     ],
     "mounts": [
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
