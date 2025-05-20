@@ -116,6 +116,19 @@ MXL_EXPORT
     MXL_EXPORT
     mxlStatus mxlDestroyFlow(mxlInstance in_instance, char const* in_flowId);
 
+    /**
+     * Get the flow shared memory region.  This is a pointer to the shared memory segment that contains the FlowInfo structure and the grains.
+     * The size of the shared memory segment is equal to the size of the FlowInfo structure + (grainCount * grainSize)
+     *
+     * \param in_instance A valid mxl instance
+     * \param in_flowId The flow ID
+     * \param out_memoryRegion A pointer to a pointer to a memory region.  This will be updated with the address of the shared memory segment.
+     * \param out_memoryRegionSize The size of the shared memory segment.
+     * \return The result code. \see mxlStatus
+     */
+    MXL_EXPORT
+    mxlStatus mxlFlowGetMemoryRegion(mxlInstance in_instance, char const* in_flowId, uint8_t** out_memoryRegion, uint64_t* out_memoryRegionSize);
+
     MXL_EXPORT
     mxlStatus mxlCreateFlowReader(mxlInstance in_instance, char const* in_flowId, char const* in_options, mxlFlowReader* out_reader);
 
