@@ -7,10 +7,12 @@
 // Actual logging levels can be configured through the MXL_LOG_LEVEL environment variable
 //
 //
-#ifndef NDEBUG
-#   define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-#else
-#   define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
+#ifndef SPDLOG_ACTIVE_LEVEL
+#   ifndef NDEBUG
+#      define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#   else
+#      define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
+#   endif
 #endif
 
 #include <spdlog/spdlog.h>

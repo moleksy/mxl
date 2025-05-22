@@ -22,7 +22,7 @@ namespace mxl::lib
     namespace fs = std::filesystem;
 
     FlowManager::FlowManager(std::filesystem::path const& in_mxlDomain)
-        : _mxlDomain{in_mxlDomain}
+        : _mxlDomain{fs::canonical(in_mxlDomain)}
     {
         if (!fs::exists(in_mxlDomain) || !fs::is_directory(in_mxlDomain))
         {
@@ -84,7 +84,8 @@ namespace mxl::lib
         auto flowData = std::make_shared<FlowData>();
         flowData->flow = std::make_shared<SharedMem<Flow>>();
 
-        if (auto const flowFile = flowDirectory / "data"; fs::exists(flowFile) || !flowData->flow->open(flowFile.native(), true, AccessMode::READ_WRITE))
+        if (auto const flowFile = flowDirectory / "data";
+            fs::exists(flowFile) || !flowData->flow->open(flowFile.native(), true, AccessMode::READ_WRITE))
         {
             throw std::runtime_error("Failed to create flow shared memory.");
         }
