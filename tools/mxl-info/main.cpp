@@ -41,20 +41,20 @@ std::ostream& operator<<(std::ostream& os, FlowInfo const& info)
 
 int listAllFlows(std::string const& in_domain)
 {
-    std::cout << "--- MXL Flows ---" << std::endl;
-    fs::path base{in_domain};
+    std::cout << "--- MXL Flows ---" << '\n';
+    auto base = std::filesystem::path{in_domain};
 
-    if (fs::exists(base) && fs::is_directory(base))
+    if (exists(base) && is_directory(base))
     {
-        for (auto const& entry : fs::directory_iterator(base))
+        for (auto const& entry : std::filesystem::directory_iterator{base})
         {
-            if (fs::is_regular_file(entry) && entry.path().extension().empty())
+            if (is_directory(entry) && (entry.path().extension() == ".mxl-flow"))
             {
                 // this looks like a uuid. try to parse it an confirm it is valid.
-                auto id = uuids::uuid::from_string(entry.path().filename().string());
+                auto id = uuids::uuid::from_string(entry.path().stem().string());
                 if (id.has_value())
                 {
-                    std::cout << "\t" << *id << std::endl;
+                    std::cout << "\t" << *id << '\n';
                 }
             }
         }
