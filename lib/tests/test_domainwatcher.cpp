@@ -6,6 +6,7 @@
 #include <uuid.h>
 #include <catch2/catch_test_macros.hpp>
 #include "../src/internal/DomainWatcher.hpp"
+#include "../src/internal/PathUtils.hpp"
 
 using namespace mxl::lib;
 namespace fs = std::filesystem;
@@ -22,14 +23,15 @@ TEST_CASE("Directory Watcher", "[directory watcher]")
     auto watcher = DomainWatcher{domain.native(), nullptr};
 
     auto const* id = "5fbec3b1-1b0f-417d-9059-8b94a47197ed";
-    auto const flowDirectory = domain / (std::string{id} + ".mxl-flow");
+    auto const flowDirectory = makeFlowDirectoryName(domain, id);
 
     fs::create_directories(flowDirectory);
 
     auto flowId = *uuids::uuid::from_string(id);
-    auto f1Path = flowDirectory / "data";
+    auto f1Path = makeFlowDataFilePath(flowDirectory);
     auto f1 = std::ofstream{f1Path};
-    auto f2Path = flowDirectory / ".access";
+
+    auto f2Path = makeFlowAccessFilePath(flowDirectory);
     auto f2 = std::ofstream{f2Path};
 
     REQUIRE(1 == watcher.addFlow(flowId, WatcherType::READER));

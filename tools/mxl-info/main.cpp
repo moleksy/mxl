@@ -12,8 +12,7 @@
 #include <mxl/flow.h>
 #include <mxl/mxl.h>
 #include <mxl/time.h>
-
-namespace fs = std::filesystem;
+#include "../../lib/src/internal/PathUtils.hpp"
 
 std::ostream& operator<<(std::ostream& os, FlowInfo const& info)
 {
@@ -48,7 +47,7 @@ int listAllFlows(std::string const& in_domain)
     {
         for (auto const& entry : std::filesystem::directory_iterator{base})
         {
-            if (is_directory(entry) && (entry.path().extension() == ".mxl-flow"))
+            if (is_directory(entry) && (entry.path().extension() == mxl::lib::FLOW_DIRECTORY_NAME_SUFFIX))
             {
                 // this looks like a uuid. try to parse it an confirm it is valid.
                 auto id = uuids::uuid::from_string(entry.path().stem().string());

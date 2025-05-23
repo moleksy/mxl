@@ -6,15 +6,15 @@
 #include <uuid.h>
 #include <catch2/catch_test_macros.hpp>
 #include "../src/internal/FlowManager.hpp"
+#include "../src/internal/PathUtils.hpp"
 #include "Utils.hpp"
 
 using namespace mxl::lib;
-namespace fs = std::filesystem;
 
 TEST_CASE("Flow Manager", "[flow manager]")
 {
-    fs::path domain{"/dev/shm/mxl_domain"}; // Remove that path if it exists.
-    fs::remove_all(domain);
+    auto const domain = std::filesystem::path{"/dev/shm/mxl_domain"}; // Remove that path if it exists.
+    remove_all(domain);
 
     auto flowDef = mxl::tests::readFile("data/v210_flow.json");
     auto flowId = *uuids::uuid::from_string("5fbec3b1-1b0f-417d-9059-8b94a47197ed");
@@ -27,7 +27,7 @@ TEST_CASE("Flow Manager", "[flow manager]")
         }());
 
     // Create the mxl domain path.
-    REQUIRE(fs::create_directory(domain));
+    REQUIRE(create_directory(domain));
 
     auto manager = std::make_shared<FlowManager>(domain);
 
@@ -40,21 +40,40 @@ TEST_CASE("Flow Manager", "[flow manager]")
     REQUIRE(flowData->flow != nullptr);
     REQUIRE(flowData->grains.size() == 5);
 
-    auto flowDirectory = domain / (uuids::to_string(flowId) + ".mxl-flow");
-    REQUIRE(fs::exists(flowDirectory));
-    REQUIRE(fs::is_directory(flowDirectory));
+    auto const flowDirectory = makeFlowDirectoryName(domain, uuids::to_string(flowId));
+    REQUIRE(exists(flowDirectory));
+    REQUIRE(is_directory(flowDirectory));
+
+    // Check that the flow SHM storage exists
+    auto const flowFile = makeFlowDataFilePath(flowDirectory);
+    REQUIRE(exists(flowFile));
+    REQUIRE(is_regular_file(flowFile));
+
+    // Check that the flow access file for the SHM storage exists
+    auto const flowAccessFile = makeFlowAccessFilePath(flowDirectory);
+    REQUIRE(exists(flowAccessFile));
+    REQUIRE(is_regular_file(flowAccessFile));
+
+    // Check that the resource definition exists and is a regular file
+    auto const resourceDefinitionFile = makeFlowDescriptorFilePath(flowDirectory);
+    REQUIRE(exists(resourceDefinitionFile));
+    REQUIRE(is_regular_file(resourceDefinitionFile));
+
+    // Check that the resource definition contains a literal copy of the
+    // definiton passed to the manager.
+    REQUIRE(mxl::tests::readFile(resourceDefinitionFile) == flowDef);
 
     // Count the grains.
-    auto grainDir = flowDirectory / "grains";
-    size_t grainCount = 0;
-    if (fs::exists(grainDir) && fs::is_directory(grainDir))
+    auto const grainDir = makeGrainDirectoryName(flowDirectory);
+    REQUIRE(exists(grainDir));
+    REQUIRE(is_directory(grainDir));
+
+    auto grainCount = 0U;
+    for (auto const& entry : std::filesystem::directory_iterator{grainDir})
     {
-        for (auto const& entry : fs::directory_iterator(grainDir))
+        if (is_regular_file(entry))
         {
-            if (fs::is_regular_file(entry))
-            {
-                ++grainCount;
-            }
+            ++grainCount;
         }
     }
     REQUIRE(grainCount == 5);
@@ -79,5 +98,5 @@ TEST_CASE("Flow Manager", "[flow manager]")
     REQUIRE(manager->listFlows().size() == 0);
 
     // Confirm that files on disk do not exist anymore
-    REQUIRE(!fs::exists(flowDirectory));
+    REQUIRE(!exists(flowDirectory));
 }

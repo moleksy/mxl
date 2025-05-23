@@ -28,6 +28,7 @@
 #include <mxl/time.h>
 #include "../../lib/src/internal/FlowParser.hpp"
 #include "../../lib/src/internal/Logging.hpp"
+#include "../../lib/src/internal/PathUtils.hpp"
 
 #ifdef __APPLE__
 #   include <TargetConditionals.h>
@@ -211,11 +212,10 @@ int real_main(int argc, char** argv)
     CLI11_PARSE(app, argc, argv);
 
     // So the source need to generate a json?
-    std::string descriptor_path = domain + "/" + flowID + ".mxl-flow" + "/.json";
-
+    auto const descriptor_path = mxl::lib::makeFlowDescriptorFilePath(domain, flowID);
     if (!std::filesystem::exists(descriptor_path))
     {
-        MXL_ERROR("Flow descriptor file '{}' does not exist", descriptor_path);
+        MXL_ERROR("Flow descriptor file '{}' does not exist", descriptor_path.string());
         return EXIT_FAILURE;
     }
 

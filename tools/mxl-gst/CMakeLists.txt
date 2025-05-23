@@ -34,10 +34,11 @@ if(gstreamer_FOUND)
         CXX_EXTENSIONS OFF
     )
     target_sources(mxl-gst-videotestsrc
-        PRIVATE
-        videotestsrc.cpp
-        ../../lib/src/internal/FlowParser.cpp
-    )
+            PRIVATE
+                videotestsrc.cpp
+                ../../lib/src/internal/FlowParser.cpp
+                ../../lib/src/internal/PathUtils.cpp
+            )
 
     target_link_libraries(mxl-gst-videotestsrc
         PRIVATE
@@ -66,10 +67,11 @@ if(gstreamer_FOUND)
         CXX_EXTENSIONS OFF
     )
     target_sources(mxl-gst-videosink
-        PRIVATE
-        videosink.cpp
-        ../../lib/src/internal/FlowParser.cpp
-    )
+            PRIVATE
+                videosink.cpp
+                ../../lib/src/internal/FlowParser.cpp
+                ../../lib/src/internal/PathUtils.cpp
+            )
 
     target_link_libraries(mxl-gst-videosink
         PRIVATE

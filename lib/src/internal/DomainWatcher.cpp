@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <uuid.h>
 #include "Logging.hpp"
+#include "PathUtils.hpp"
 
 #ifdef __APPLE__
 #   include <sys/event.h>
@@ -87,15 +88,10 @@ namespace mxl::lib
         record->id = in_flowId;
         record->type = in_type;
 
-        auto const flowDirectory = _domain / (id + ".mxl-flow");
-        if (in_type == WatcherType::READER)
-        {
-            record->fileName = flowDirectory / "data";
-        }
-        else
-        {
-            record->fileName = flowDirectory / ".access";
-        }
+        auto const flowDirectory = makeFlowDirectoryName(_domain, id);
+        record->fileName = (in_type == WatcherType::READER)
+            ? makeFlowDataFilePath(flowDirectory)
+            : makeFlowAccessFilePath(flowDirectory);
 
         // try to find it in the maps.
         std::lock_guard<std::mutex> lock(_mutex);

@@ -17,6 +17,7 @@
 #include "Flow.hpp"
 #include "FlowManager.hpp"
 #include "Logging.hpp"
+#include "PathUtils.hpp"
 #include "SharedMem.hpp"
 #include "Sync.hpp"
 
@@ -51,8 +52,7 @@ namespace mxl::lib
         {
             _flowId = in_id;
 
-            auto const base = _manager->getDomain() / (uuids::to_string(in_id) + ".mxl-flow");
-            auto accessFile = base / ".access";
+            auto const accessFile = makeFlowAccessFilePath(_manager->getDomain(), to_string(in_id));
             _accessFileFd = ::open(accessFile.string().c_str(), O_RDWR);
 
             // Opening the access file may fail if the domain is in a read only volume.
