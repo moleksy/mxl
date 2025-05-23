@@ -36,6 +36,7 @@ target_sources(mxl
             src/internal/FlowManager.cpp
             src/internal/Instance.cpp
             src/internal/Logging.cpp
+            src/internal/PathUtils.cpp
             src/internal/PosixFlowReader.cpp
             src/internal/PosixFlowWriter.cpp
             src/internal/SharedMem.cpp
