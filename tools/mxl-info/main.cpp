@@ -5,13 +5,14 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <fmt/format.h>
 #include <uuid.h>
 #include <CLI/CLI.hpp>
+#include <fmt/format.h>
 #include <gsl/span>
 #include <mxl/flow.h>
 #include <mxl/mxl.h>
 #include <mxl/time.h>
+#include <sys/file.h>
 #include "../../lib/src/internal/PathUtils.hpp"
 
 std::ostream& operator<<(std::ostream& os, FlowInfo const& info)
@@ -26,14 +27,12 @@ std::ostream& operator<<(std::ostream& os, FlowInfo const& info)
        << '\t' << fmt::format("{: >18}: {}/{}", "Grain rate", info.grainRate.numerator, info.grainRate.denominator) << '\n'
        << '\t' << fmt::format("{: >18}: {}", "Grain count", info.grainCount) << '\n'
        << '\t' << fmt::format("{: >18}: {}", "Last write time", info.lastWriteTime) << '\n'
-       << '\t' << fmt::format("{: >18}: {}", "Last read time", info.lastReadTime)
-       << std::endl;
+       << '\t' << fmt::format("{: >18}: {}", "Last read time", info.lastReadTime) << std::endl;
 
     auto const now = mxlGetTime();
     auto currentIndex = mxlTimestampToGrainIndex(&info.grainRate, now);
     os << '\t' << fmt::format("{: >18}: {}", "Latency (grains)", currentIndex - info.headIndex) << '\n'
-       << '\t' << fmt::format("{: >18}: {}", "Latency (ns)", now - info.lastWriteTime)
-       << std::endl;
+       << '\t' << fmt::format("{: >18}: {}", "Latency (ns)", now - info.lastWriteTime) << std::endl;
 
     return os;
 }
@@ -95,7 +94,21 @@ int printFlow(std::string const& in_domain, std::string const& in_id)
     }
     else
     {
-        std::cout << info << std::endl;
+        // Print the flow information.
+        std::cout << info;
+
+        // Try to obtain an exclusive lock on the flow data file.  If we can obtain one it means that no
+        // other process is writing to the flow.
+        auto flowDataFile = mxl::lib::makeFlowDataFilePath(in_domain, in_id);
+        int fd = open(flowDataFile.c_str(), O_RDONLY | O_CLOEXEC);
+
+        // Try to obtain an exclusive lock on the file descriptor. Do not block if the lock cannot be obtained.
+        bool active = flock(fd, LOCK_EX | LOCK_NB) < 0;
+        close(fd);
+
+        // Print the status of the flow.
+        std::cout << '\t' << fmt::format("{: >18}: {}", "Active", active) << std::endl;
+
         ret = EXIT_SUCCESS;
     }
 

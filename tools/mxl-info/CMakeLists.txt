@@ -16,6 +16,7 @@ set_target_properties(mxl-info
     )
 target_sources(mxl-info
         PRIVATE
+            ../../lib/src/internal/PathUtils.cpp
             main.cpp
     )
 

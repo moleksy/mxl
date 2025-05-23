@@ -10,8 +10,8 @@
 #include <vector>
 #include <uuid.h>
 #include <mxl/flow.h>
-#include <mxl/time.h>
 #include <mxl/mxl.h>
+#include <mxl/time.h>
 #include <system_error>
 #include "Flow.hpp"
 #include "Logging.hpp"
@@ -43,7 +43,7 @@ namespace mxl::lib
                     "Could not create temporary directory.", base, std::error_code{errno, std::generic_category()}
                 };
             }
-            return std::move(pathBuffer);
+            return pathBuffer;
         }
 
         void publishFlowDirectory(std::filesystem::path const& source, std::filesystem::path const& dest)
@@ -57,7 +57,7 @@ namespace mxl::lib
     }
 
     FlowManager::FlowManager(std::filesystem::path const& in_mxlDomain)
-        : _mxlDomain{fs::canonical(in_mxlDomain)}
+        : _mxlDomain{std::filesystem::canonical(in_mxlDomain)}
     {
         if (!exists(in_mxlDomain) || !is_directory(in_mxlDomain))
         {
@@ -66,8 +66,8 @@ namespace mxl::lib
         }
     }
 
-    FlowData::ptr FlowManager::createFlow(uuids::uuid const& flowId, std::string const& flowDef, std::size_t grainCount,
-        Rational const& grainRate, std::size_t grainPayloadSize)
+    FlowData::ptr FlowManager::createFlow(uuids::uuid const& flowId, std::string const& flowDef, std::size_t grainCount, Rational const& grainRate,
+        std::size_t grainPayloadSize)
     {
         auto const uuidString = uuids::to_string(flowId);
         MXL_DEBUG("Create flow. id: {}, grainCount: {}, grain payload size: {}", uuidString, grainCount, grainPayloadSize);
@@ -83,22 +83,22 @@ namespace mxl::lib
             }
             else
             {
-                throw std::filesystem::filesystem_error("Failed to create flow resource definition.",
-                        flowJsonFile, std::make_error_code(std::errc::io_error));
+                throw std::filesystem::filesystem_error(
+                    "Failed to create flow resource definition.", flowJsonFile, std::make_error_code(std::errc::io_error));
             }
 
             // Create the dummy file.
             auto readAccessFile = makeFlowAccessFilePath(tempDirectory);
             if (auto out = std::ofstream{readAccessFile, std::ios::out | std::ios::trunc}; !out)
             {
-                throw std::filesystem::filesystem_error("Failed to create flow access file.",
-                        readAccessFile, std::make_error_code(std::errc::file_exists));
+                throw std::filesystem::filesystem_error(
+                    "Failed to create flow access file.", readAccessFile, std::make_error_code(std::errc::file_exists));
             }
 
             auto flowData = std::make_shared<FlowData>();
             flowData->flow = std::make_shared<SharedMem<Flow>>();
 
-            if (auto const flowFile =makeFlowDataFilePath(tempDirectory); !flowData->flow->open(flowFile.native(), true, AccessMode::READ_WRITE))
+            if (auto const flowFile = makeFlowDataFilePath(tempDirectory); !flowData->flow->open(flowFile.native(), true, AccessMode::READ_WRITE))
             {
                 throw std::runtime_error("Failed to create flow shared memory.");
             }
@@ -111,7 +111,6 @@ namespace mxl::lib
             std::memcpy(info.id, idSpan.data(), idSpan.size());
             info.lastWriteTime = mxlGetTime();
             info.lastReadTime = info.lastWriteTime;
-
 
             info.grainRate = grainRate;
             info.grainCount = grainCount;

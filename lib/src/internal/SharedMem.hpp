@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <utime.h>
+#include <sys/file.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include "Logging.hpp"
@@ -117,7 +118,7 @@ namespace mxl::lib
 
         if (in_create && (_fd = ::open(in_path.c_str(), omode_create, 0664)) != -1)
         {
-            /// Ensure the file is large enough to hold the shared data
+            // Ensure the file is large enough to hold the shared data
             if (ftruncate(_fd, sizeof(T) + in_payloadSize) == -1)
             {
                 throw std::runtime_error("ftruncate failed");
@@ -128,6 +129,16 @@ namespace mxl::lib
         {
             MXL_ERROR("Open failed : {}, {}", in_path, strerror(errno));
             return false;
+        }
+
+        if (in_mode == AccessMode::READ_WRITE)
+        {
+            // Try to obtain a shared lock on the the file descriptor
+            // This is useful to detect if ringbufers and flows are 'stale' (if the writer processes are still using it)
+            if (flock(_fd, LOCK_SH | LOCK_NB) < 0)
+            {
+                MXL_WARN("Failed to aquire a shared advisory lock on file: {}, {}", in_path, strerror(errno));
+            }
         }
 
         // mmap the whole file.

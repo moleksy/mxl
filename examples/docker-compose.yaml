@@ -1,5 +1,3 @@
-name: ebu-dmf-mxl-demo
-
 services:
   writer-media-function:
     image: mxl-writer

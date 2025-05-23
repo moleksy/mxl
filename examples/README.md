@@ -1,20 +1,20 @@
 # Docker Compose Example
 
-This example launches two containers simulating two different media functions executing in separate containers.
+This example launches two containers simulating two different media functions executing in separate containers.  It relies on docker.io and docker-compose-plugin being installed on the host.
+
 - Writer container: The docker volume named "domain" is mounted in read-write mode in the writer media function container.  The writer process generates a test pattern with burnt in time of day.
 - Reader container: The docker volume named "domain" is mounted in read-only mode in the reader media function. At the moment the reader media function container is idling.  To use it you need to exec into it: 
 
     ```bash
-    docker exec -it ebu-dmf-mxl-demo-reader-media-function-1 /app/mxl-info -d /domain -f 5fbec3b1-1b0f-417d-9059-8b94a47197ed
+    docker exec -it examples-reader-media-function-1 /app/mxl-info -d /domain -f 5fbec3b1-1b0f-417d-9059-8b94a47197ed
     ```
-
 
 ## Building 
 
 Compile the whole MXL library and tools using the ```Linux-Clang-Release``` preset by invoking ```ninja all``` in the ```build/Linux-Clang-Release```  directory.  Then, in the "examples" directory, run:
 
 ```bash
-docker-compose build
+docker compose build
 ```
 
 ## Running
@@ -22,7 +22,7 @@ docker-compose build
 In the "examples" directory run:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 
