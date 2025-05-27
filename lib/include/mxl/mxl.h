@@ -13,6 +13,7 @@ extern "C"
 {
 #endif
 
+    /// MXL SDK Status codes.
     typedef enum mxlStatus
     {
         MXL_STATUS_OK,
@@ -27,6 +28,7 @@ extern "C"
         MXL_ERR_CONFLICT,
     } mxlStatus;
 
+    /// MXL SDK Semantic versionning structure.
     typedef struct mxlVersionType
     {
         uint16_t major;
@@ -35,14 +37,44 @@ extern "C"
         uint16_t build;
     } mxlVersionType;
 
+    ///
+    /// Accessor for the version of the MXL SDK.
+    /// \param out_version Pointer to a mxlVersionType structure to be filled with the version information.
+    /// \return MXL_STATUS_OK if the version was successfully retrieved, MXL_ERR_INVALID_ARG if the pointer passed was NULL.
+    /// 
     MXL_EXPORT
-    int8_t mxlGetVersion(mxlVersionType* out_version);
+    mxlStatus mxlGetVersion(mxlVersionType* out_version);
 
     typedef struct mxlInstance_t* mxlInstance;
 
+    ///
+    /// Create a new MXL instance for a specific domain.
+    ///
+    /// \param in_mxlDomain The domain is the directory where the MXL ringbuffers files are stored.  It should live on a tmpfs filesystem.
+    /// \param in_options Optional JSON string containing additional SDK options. Currently not used.
+    /// \return A pointer to the MXL instance or NULL if the instance could not be created.
+    ///
     MXL_EXPORT
     mxlInstance mxlCreateInstance(char const* in_mxlDomain, char const* in_options);
 
+    ///
+    /// Iterates over all flows in the MXL domain and deletes any flows that are
+    /// no longer active (in other words, no readers or writers are using them. This typically
+    /// happens when an application creating flows writers crashes or exits without cleaning up.
+    /// A flow is considered active if a shared advisory lock is held on the data file of the flow.
+    /// This function is automatically called when the instance is created but should be called periodically
+    /// on a long running application to clean up any flows that are no longer active.
+    ///
+    MXL_EXPORT
+    mxlStatus mxlGarbageCollectFlows(mxlInstance in_instance);
+
+    ///
+    /// Destroy the MXL instance.  This will also release all flows readers/writers associated with the instance.
+    ///
+    /// \param in_instance The MXL instance to destroy.
+    /// \return MXL_STATUS_OK if the instance was successfully destroyed, MXL_ERR_INVALID_ARG if the pointer passed was NULL. MXL_ERR_UNKNOWN if an
+    /// error occurred during destruction.
+    ///
     MXL_EXPORT
     mxlStatus mxlDestroyInstance(mxlInstance in_instance);
 

@@ -9,7 +9,7 @@
 
 extern "C"
 MXL_EXPORT
-int8_t mxlGetVersion(mxlVersionType* out_version)
+mxlStatus mxlGetVersion(mxlVersionType* out_version)
 {
     if (out_version != nullptr)
     {
@@ -17,11 +17,11 @@ int8_t mxlGetVersion(mxlVersionType* out_version)
         out_version->minor = MXL_VERSION_MINOR;
         out_version->bugfix = MXL_VERSION_PATCH;
         out_version->build = MXL_VERSION_BUILD;
-        return 0;
+        return MXL_STATUS_OK;
     }
     else
     {
-        return 1;
+        return MXL_ERR_INVALID_ARG;
     }
 }
 
@@ -56,6 +56,31 @@ mxlStatus mxlDestroyInstance(mxlInstance in_instance)
         delete instance;
 
         return (instance != nullptr) ? MXL_STATUS_OK : MXL_ERR_INVALID_ARG;
+    }
+    catch (...)
+    {
+        return MXL_ERR_UNKNOWN;
+    }
+}
+
+extern "C"
+MXL_EXPORT
+mxlStatus mxlGarbageCollectFlows(mxlInstance in_instance)
+{
+    try
+    {
+        if (auto const instance = mxl::lib::to_Instance(in_instance); instance != nullptr)
+        {
+            MXL_DEBUG("Starting garbage collection of flows");
+            [[maybe_unused]]
+            auto count = instance->garbageCollect();
+            MXL_DEBUG("Garbage collected {} flows", count);
+            return MXL_STATUS_OK;
+        }
+        else
+        {
+            return MXL_ERR_INVALID_ARG;
+        }
     }
     catch (...)
     {

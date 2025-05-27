@@ -21,6 +21,7 @@
 #include "FlowReader.hpp"
 #include "FlowWriter.hpp"
 #include "Logging.hpp"
+#include "PathUtils.hpp"
 #include "PosixFlowReader.hpp"
 #include "PosixFlowWriter.hpp"
 
@@ -228,6 +229,76 @@ namespace mxl::lib
     bool Instance::deleteFlow(uuids::uuid const& in_id)
     {
         return _flowManager->deleteFlow(in_id, nullptr);
+    }
+
+    // This function is perfomed in a 'collaborative best effort' way.
+    // Exceptions thrown should not be propagated to the caller and cause distruptions to the application.
+    // On error the function will return 0 and log the error
+    ::size_t Instance::garbageCollect() const
+    {
+        ::size_t count = 0;
+
+        try
+        {
+            auto base = std::filesystem::path{_flowManager->getDomain()};
+            if (exists(base) && is_directory(base))
+            {
+                for (auto const& entry : std::filesystem::directory_iterator{base})
+                {
+                    if (is_directory(entry) && (entry.path().extension() == mxl::lib::FLOW_DIRECTORY_NAME_SUFFIX))
+                    {
+                        // Try to obtain an exclusive lock on the flow data file.  If we can obtain one it means that no
+                        // other process is writing to the flow.
+                        auto const flowDataFile = mxl::lib::makeFlowDataFilePath(_flowManager->getDomain(), entry.path().stem().string());
+
+                        // Check if the flow data file exists
+                        if (!std::filesystem::exists(flowDataFile))
+                        {
+                            MXL_DEBUG("Flow data file {} does not exist", flowDataFile.string());
+                            continue;
+                        }
+
+                        // Open a file descriptor to the flow data file
+                        int flags = O_RDONLY | O_CLOEXEC;
+#ifndef __APPLE__
+                        flags |= O_NOATIME;
+#endif
+                        int fd = ::open(flowDataFile.c_str(), flags);
+                        // Try to obtain an exclusive lock on the file descriptor. Do not block if the lock cannot be obtained.
+                        bool active = ::flock(fd, LOCK_EX | LOCK_NB) < 0;
+                        ::close(fd);
+
+                        // The flow is not active.  remove it (the folder and everything in it)
+                        if (!active)
+                        {
+                            std::error_code ec;
+                            std::filesystem::remove_all(entry.path(), ec);
+                            if (ec)
+                            {
+                                MXL_DEBUG("Failed to remove '{}': {} (error code {})", entry.path().string(), ec.message(), ec.value());
+                            }
+                            else
+                            {
+                                count++;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MXL_DEBUG("MXL domain {} does not exist or is not a directory", base.string());
+            }
+        }
+        catch (std::exception const& e)
+        {
+            MXL_DEBUG("Failed to perform garbage collection: {}", e.what());
+        }
+        catch (...)
+        {
+            MXL_DEBUG("Failed to perform garbage collection");
+        }
+        return count;
     }
 
     Instance* to_Instance(mxlInstance in_instance)

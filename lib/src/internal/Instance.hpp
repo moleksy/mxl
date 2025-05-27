@@ -139,6 +139,12 @@ namespace mxl::lib
         /// \return True if found
         ///
         bool removeWriter(FlowWriterId in_id);
+
+        ///
+        /// Garbage collect the inactive flows.  This will remove any flows that are not being used by any readers or writers.
+        /// \return The number of flows that were removed.
+        ///
+        ::size_t garbageCollect() const;
     };
 
     // POD struct to hold an instance and that can be easily

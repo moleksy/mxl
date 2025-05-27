@@ -120,6 +120,30 @@ int printFlow(std::string const& in_domain, std::string const& in_id)
     return ret;
 }
 
+// Perform garbage collection on the MXL domain.
+int garbageCollect(std::string const& in_domain)
+{
+    // Create the SDK instance with a specific domain.
+    auto instance = mxlCreateInstance(in_domain.c_str(), "");
+    if (instance == nullptr)
+    {
+        std::cerr << "Failed to create MXL instance" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    auto status = mxlGarbageCollectFlows(instance);
+    if (status != MXL_STATUS_OK)
+    {
+        std::cerr << "Failed to perform garbage collection : " << status << std::endl;
+        mxlDestroyInstance(instance);
+        return EXIT_FAILURE;
+    }
+
+    mxlDestroyInstance(instance);
+
+    return EXIT_SUCCESS;
+}
+
 int main(int argc, char** argv)
 {
     CLI::App app("mxl-info");
@@ -142,12 +166,17 @@ int main(int argc, char** argv)
     auto flowIdOpt = app.add_option("-f,--flow", flowId, "The flow id to analyse");
 
     auto allOpt = app.add_flag("-l,--list", "List all flows in the MXL domain");
+    auto gcOpt = app.add_flag("-g,--garbage-collect", "Garbage collect inactive flows found in the MXL domain");
 
     CLI11_PARSE(app, argc, argv);
 
     int status = EXIT_SUCCESS;
 
-    if (allOpt->count() > 0)
+    if (gcOpt->count() > 0)
+    {
+        status = garbageCollect(domain);
+    }
+    else if (allOpt->count() > 0)
     {
         status = listAllFlows(domain);
     }
