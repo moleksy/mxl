@@ -20,7 +20,7 @@ namespace mxl::lib
         int do_wait(void const* futex, std::uint32_t expected, Duration timeout)
         {
             auto const timeoutTs = asTimeSpec(timeout);
-            return ::syscall(SYS_futex, futex, FUTEX_WAIT | FUTEX_CLOCK_REALTIME, expected, &timeoutTs, nullptr, 0);
+            return ::syscall(SYS_futex, futex, FUTEX_WAIT, expected, &timeoutTs, nullptr, 0);
         }
 
         int do_wake_one(void const* futex)
