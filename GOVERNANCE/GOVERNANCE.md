@@ -47,16 +47,16 @@ The TSC strives for consensus. If voting is needed:
 - Quorum is 50% of voting members.
 - Votes at meetings require a majority of those present. Electronic votes require a majority of all TSC members.
 ## TSC Members
-Vincent Trussard (Grass Valley) - Implementors Chair
-Felix Poulin (CBC/Radio Canada) - User Co-Chair
-Osmar Bento (AWS)
-Peter Brightwell (BBC)
-Kimon Hoffmann (Lawo)
-Pavlo Kondratenko (EBU)
-Jean-Philippe Lapointe (Riedel)
-Gareth Sylvester-Bradley (NVIDIA)
-Willem Vermost (EBU)
-Sithideth Viengkhou (Riedel)
+- Vincent Trussard (Grass Valley) - Implementors Chair
+- Felix Poulin (CBC/Radio Canada) - User Co-Chair
+- Osmar Bento (AWS)
+- Peter Brightwell (BBC)
+- Kimon Hoffmann (Lawo)
+- Pavlo Kondratenko (EBU)
+- Jean-Philippe Lapointe (Riedel)
+- Gareth Sylvester-Bradley (NVIDIA)
+- Willem Vermost (EBU)
+- Sithideth Viengkhou (Riedel)
 # Requirements Council
 The Requirements Council (RC) represents the voice of users and media professionals.
 Members are selected by the TSC.
@@ -65,17 +65,17 @@ Maintains a roadmap of user-relevant requirements in the Project's repository.
 Elects a Chair who is also a voting TSC member.
 Members serve one-year terms and may be reappointed or removed by the TSC.
 ## RC Members
-Peter Brightwell (BBC) - Chair
-Thomas Edwards (AWS)
-Zakarias Faust (SR)
-Ian Fletcher (Grass Valley)
-Pavlo Kondratenko (EBU)
-John Mailhot (Imagine Communications)
-Marcel Malchau (SWR)
-Phil Myers (Lawo)
-(?) Mathieu Rochon (CBC/Radio Canada)
-Willem Vermost (EBU)
-(?) Ian Wagdin (Appear)
+- Peter Brightwell (BBC) - Chair
+- Thomas Edwards (AWS)
+- Zakarias Faust (SR)
+- Ian Fletcher (Grass Valley)
+- Pavlo Kondratenko (EBU)
+- John Mailhot (Imagine Communications)
+- Marcel Malchau (SWR)
+- Phil Myers (Lawo)
+- (?) Mathieu Rochon (CBC/Radio Canada)
+- Willem Vermost (EBU)
+- (?) Ian Wagdin (Appear)
 # Meetings
 TSC meetings are public unless a justified need for privacy arises. Meetings are announced in advance and may be held virtually or in person. The agenda is shared in advance. Any community member can propose items by opening an issue and tagging it for TSC consideration.
 Minutes are recorded and archived. Additional guests may attend in a non-voting capacity.
