@@ -21,7 +21,7 @@ If submitting a bug report, include:
   - What happened
   - What you expected to happen
 ## How to Report a Security Vulnerability
-If you think you've found a potential vulnerability in MXL, please refer to [SECURITY.md]() to responsibly disclose it.
+If you think you've found a potential vulnerability in MXL, please refer to [SECURITY.md](SECURITY.md) to responsibly disclose it.
 ## How to Contribute a Bug Fix or Change
 Before contributing code, please review the [GOVERNANCE](GOVERNANCE/GOVERNANCE.md) file to understand the roles involved.
 You'll need:
