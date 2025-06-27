@@ -47,7 +47,7 @@ The TSC strives for consensus. If voting is needed:
 - Quorum is 50% of voting members.
 - Votes at meetings require a majority of those present. Electronic votes require a majority of all TSC members.
 ## TSC Members
-- Vincent Trussard (Grass Valley) - Implementors Chair
+- Vincent Trussard (Grass Valley) - Implementor Co-Chair
 - Felix Poulin (CBC/Radio Canada) - User Co-Chair
 - Osmar Bento (AWS)
 - Peter Brightwell (BBC)
