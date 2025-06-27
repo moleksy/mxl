@@ -29,7 +29,7 @@ You'll need:
 - A fork of the GitHub repo.
 - An understanding of the project's development workflow.
 ## Legal Requirements
-MXL follows the Linux Foundation’s best practices for open- source contributions.
+MXL follows the Linux Foundation’s best practices for open-source contributions.
 ## License
 MXL is licensed under the [Apache-2.0](LICENSE.txt) license. Contributions must comply with this license.
 ## Contributor License Agreements
