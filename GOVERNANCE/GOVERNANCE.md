@@ -47,16 +47,16 @@ The TSC strives for consensus. If voting is needed:
 - Quorum is 50% of voting members.
 - Votes at meetings require a majority of those present. Electronic votes require a majority of all TSC members.
 ## TSC Members
-- Vincent Trussard (Grass Valley) - Implementor Co-Chair
+- [Vincent Trussard (Grass Valley)](https://github.com/vt-tv) - Implementor Co-Chair
 - Felix Poulin (CBC/Radio Canada) - User Co-Chair
 - Osmar Bento (AWS)
-- Peter Brightwell (BBC)
-- Kimon Hoffmann (Lawo)
-- Pavlo Kondratenko (EBU)
-- Jean-Philippe Lapointe (Riedel)
-- Gareth Sylvester-Bradley (NVIDIA)
-- Willem Vermost (EBU)
-- Sithideth Viengkhou (Riedel)
+- [Peter Brightwell (BBC)](https://github.com/peterbrightwell)
+- [Kimon Hoffmann (Lawo)](https://github.com/KimonHoffmann)
+- [Pavlo Kondratenko (EBU)](https://github.com/paulvko)
+- [Jean-Philippe Lapointe (Riedel)](https://github.com/lapointejp)
+- [Gareth Sylvester-Bradley (NVIDIA)](https://github.com/garethsb)
+- [Willem Vermost (EBU)](https://github.com/wvermost)
+- [Sithideth Viengkhou (Riedel)](https://github.com/sviengkhou)
 # Requirements Council
 The Requirements Council (RC) represents the voice of users and media professionals.
 Members are selected by the TSC.
