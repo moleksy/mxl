@@ -5,7 +5,6 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE.txt)
 [![Issues](https://img.shields.io/github/issues/dmf-mxl/mxl)](https://github.com/dmf-mxl/mxl/issues)
 
-## Overview
 Rapid advances in computing power and network infrastructure are transforming the landscape of live media production. The professional broadcast industry is gradually moving away from hardware-centric systems and towards software-defined solutions, promising far greater flexibility, scalability, and operational agility. However, this shift into a more virtualised, “dematerialised” environment also introduces substantial interoperability challenges. Multiple vendors, proprietary frameworks, and disparate technology stacks can prevent diverse systems from integrating seamlessly across distributed networks, potentially inhibiting innovation and restricting the efficiency of modern broadcast workflows.
 
 To address these challenges, the EBU Dynamic Media Facility (DMF) initiative proposes a standardised architecture inspired by the cloud-hyperscaler model. In this architecture, discrete “media functions”, the modular building blocks responsible for ingesting, processing, and delivering content, are deployed onto a common container-based platform. These functions can be provisioned and scaled on-demand, and strategically placed wherever compute, storage, and bandwidth are most readily available, whether on-premises, at the network edge, or in public or private clouds.
