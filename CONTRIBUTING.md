@@ -36,7 +36,7 @@ MXL is licensed under the [Apache-2.0](LICENSE.txt) license. Contributions must 
 ## Contributor License Agreements
 We do not require a CLA at this time.
 ## Commit Sign-Off
-Every commit must be signed off.  That is, every commit log message must include a “`Signed-off-by`” line (generated, for example, with “`git commit --signoff`”), indicating that the Maintainer wrote the code and has the right to release it under the [Apache-2.0](LICENSE.txt) license.
+Every commit must be signed off.  That is, every commit log message must include a “`Signed-off-by`” line (generated, for example, with “`git commit --signoff`”), indicating that the Contributor wrote the code and has the right to release it under the [Apache-2.0](LICENSE.txt) license.
 # Development Workflow
 ## Git Basics
 Working with MXL requires understanding a significant amount of Git and GitHub-based terminology. If you’re unfamiliar with these tools or their lingo, please look at the [GitHub Glossary](https://docs.github.com/en/get-started/learning-about-github/github-glossary) or browse [GitHub Help](https://help.github.com/).
