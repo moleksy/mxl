@@ -20,6 +20,7 @@ If submitting a bug report, include:
   - What you tried
   - What happened
   - What you expected to happen
+- If possible, a minimalistic sample reproducing the issue
 ## How to Report a Security Vulnerability
 If you think you've found a potential vulnerability in MXL, please refer to [SECURITY.md](SECURITY.md) to responsibly disclose it.
 ## How to Contribute a Bug Fix or Change
