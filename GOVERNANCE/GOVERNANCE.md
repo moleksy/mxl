@@ -4,7 +4,7 @@ There are four primary project roles:
 - Contributors submit code to the project. 
 - Maintainers approve code to be included into the project.
 - A Technical Steering Committee (TSC) provides overall high-level project guidance. 
-- A Requirements Council complements the TSC by representing user requirements.
+- A User Requirements Council (URC) complements the TSC by representing user requirements.
 # Contributors
 The MXL project grows and thrives from the assistance of Contributors. Contributors include anyone in the community who contributes code, documentation, or other technical artefacts that have been incorporated into the project's repository.
 Anyone can be a Contributor. You need no formal approval from the project, (?) beyond the legal forms.
