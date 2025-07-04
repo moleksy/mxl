@@ -225,3 +225,128 @@ TEST_CASE("Flow Manager : Create Audio Flow Structure", "[flow manager]")
     // Confirm that files on disk do not exist anymore
     REQUIRE(!exists(flowDirectory));
 }
+
+TEST_CASE("Flow Manager : Open, List, and Error Conditions", "[flow manager]") {
+    auto const domain = getDomainPath();
+    // start clean
+    std::error_code ec;
+    std::filesystem::remove_all(domain, ec);
+    REQUIRE(std::filesystem::create_directory(domain));
+
+    auto manager = std::make_shared<FlowManager>(domain);
+
+    //
+    // 1) Create & open a discrete flow
+    //
+    auto const flowId1 = *uuids::uuid::from_string("11111111-1111-1111-1111-111111111111");
+    auto const flowDef1 = mxl::tests::readFile("data/v210_flow.json");
+    auto const grainRate = Rational{60000, 1001};
+    {
+        auto flowData1 = manager->createDiscreteFlow(flowId1, flowDef1, MXL_DATA_FORMAT_VIDEO, 3, grainRate, 512);
+        REQUIRE(flowData1->grainCount() == 3U);
+        // close writer
+        flowData1.reset();
+    }
+    // open in read-only mode
+    {
+        auto openData1 = manager->openFlow(flowId1, AccessMode::OPEN_READ_ONLY);
+        REQUIRE(openData1);
+        auto *d = dynamic_cast<DiscreteFlowData*>(openData1.get());
+        REQUIRE(d);
+        REQUIRE(d->grainCount() == 3U);
+    }
+
+    //
+    // 2) Create & open a continuous flow
+    //
+    auto const flowId2 = *uuids::uuid::from_string("22222222-2222-2222-2222-222222222222");
+    auto const flowDef2 = mxl::tests::readFile("data/audio_flow.json");
+    auto const sampleRate = Rational{48000, 1};
+    {
+        auto flowData2 = manager->createContinuousFlow(flowId2, flowDef2, MXL_DATA_FORMAT_AUDIO, sampleRate, 4, sizeof(float), 2048);
+        REQUIRE(flowData2->channelCount() == 4U);
+        flowData2.reset();
+    }
+    {
+        auto openData2 = manager->openFlow(flowId2, AccessMode::OPEN_READ_WRITE);
+        REQUIRE(openData2);
+        auto *c = dynamic_cast<ContinuousFlowData*>(openData2.get());
+        REQUIRE(c);
+        REQUIRE(c->channelCount() == 4U);
+    }
+
+    //
+    // 3) listFlows should report both flows
+    //
+    {
+        auto flows = manager->listFlows();
+        REQUIRE(flows.size() == 2);
+    }
+
+    //
+   // 4) deleteFlow(nullptr) returns false
+    //
+    {
+        std::unique_ptr<FlowData> empty;
+        REQUIRE(manager->deleteFlow(std::move(empty)) == false);
+   }
+
+    //
+    // 5) delete by ID and verify removal
+    //
+    REQUIRE(manager->deleteFlow(flowId1));
+    REQUIRE(manager->listFlows().size() == 1);
+    REQUIRE(manager->deleteFlow(flowId2));
+    REQUIRE(manager->listFlows().empty());
+
+    //
+    // 6) openFlow invalid mode should throw
+    //
+    REQUIRE_THROWS_AS(
+        manager->openFlow(flowId1, AccessMode::CREATE_READ_WRITE),
+        std::invalid_argument
+    );
+
+    //
+    // 7) opening a non-existent flow throws filesystem_error
+    //
+    auto const flowId3 = *uuids::uuid::from_string("33333333-3333-3333-3333-333333333333");
+    REQUIRE_THROWS_AS(
+        manager->openFlow(flowId3, AccessMode::OPEN_READ_ONLY),
+        std::filesystem::filesystem_error
+    );
+
+    //
+    // 8) listFlows skips invalid directories
+    //
+    {
+        // manually drop a bogus folder
+        auto invalidDir = domain / "not-a-valid-uuid.mxl-flow";
+        REQUIRE(std::filesystem::create_directory(invalidDir));
+        manager = std::make_shared<FlowManager>(domain);
+        auto flows2 = manager->listFlows();
+        REQUIRE(flows2.empty());
+    }
+
+    //
+    // 9) listFlows on missing domain throws
+    //
+    std::filesystem::remove_all(domain, ec);
+    REQUIRE_THROWS_AS(
+        manager->listFlows(),
+        std::filesystem::filesystem_error
+    );
+
+    //
+    // 10) unsupported formats should be rejected
+    //
+    auto const badId = *uuids::uuid::from_string("44444444-4444-4444-4444-444444444444");
+    REQUIRE_THROWS_AS(
+        manager->createDiscreteFlow(badId, flowDef1, MXL_DATA_FORMAT_UNSPECIFIED, 1, grainRate, 128),
+        std::runtime_error
+    );
+    REQUIRE_THROWS_AS(
+        manager->createContinuousFlow(badId, flowDef2, MXL_DATA_FORMAT_VIDEO, sampleRate, 1, 4, 1024),
+        std::runtime_error
+    );
+}
