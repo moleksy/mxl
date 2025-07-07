@@ -226,7 +226,8 @@ TEST_CASE("Flow Manager : Create Audio Flow Structure", "[flow manager]")
     REQUIRE(!exists(flowDirectory));
 }
 
-TEST_CASE("Flow Manager : Open, List, and Error Conditions", "[flow manager]") {
+TEST_CASE("Flow Manager : Open, List, and Error Conditions", "[flow manager]") 
+{
     auto const domain = getDomainPath();
     // start clean
     std::error_code ec;
@@ -249,7 +250,7 @@ TEST_CASE("Flow Manager : Open, List, and Error Conditions", "[flow manager]") {
     }
     // open in read-only mode
     {
-        auto openData1 = manager->openFlow(flowId1, AccessMode::OPEN_READ_ONLY);
+        auto openData1 = manager->openFlow(flowId1, AccessMode::READ_ONLY);
         REQUIRE(openData1);
         auto *d = dynamic_cast<DiscreteFlowData*>(openData1.get());
         REQUIRE(d);
@@ -268,7 +269,7 @@ TEST_CASE("Flow Manager : Open, List, and Error Conditions", "[flow manager]") {
         flowData2.reset();
     }
     {
-        auto openData2 = manager->openFlow(flowId2, AccessMode::OPEN_READ_WRITE);
+        auto openData2 = manager->openFlow(flowId2, AccessMode::READ_WRITE);
         REQUIRE(openData2);
         auto *c = dynamic_cast<ContinuousFlowData*>(openData2.get());
         REQUIRE(c);
@@ -312,7 +313,7 @@ TEST_CASE("Flow Manager : Open, List, and Error Conditions", "[flow manager]") {
     //
     auto const flowId3 = *uuids::uuid::from_string("33333333-3333-3333-3333-333333333333");
     REQUIRE_THROWS_AS(
-        manager->openFlow(flowId3, AccessMode::OPEN_READ_ONLY),
+        manager->openFlow(flowId3, AccessMode::READ_ONLY),
         std::filesystem::filesystem_error
     );
 
