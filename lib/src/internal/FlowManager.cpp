@@ -136,7 +136,10 @@ namespace mxl::lib
             info.discrete.syncCounter = 0;
 
             auto const grainDir = makeGrainDirectoryName(tempDirectory);
-            create_directory(grainDir);
+            if (!std::filesystem::create_directory(grainDir))
+            {
+                throw std::filesystem::filesystem_error("Could not create grain directory", grainDir, std::make_error_code(std::errc::io_error));
+            }
 
             for (auto i = std::size_t{0}; i < grainCount; ++i)
             {
@@ -152,7 +155,15 @@ namespace mxl::lib
                 gInfo.deviceIndex = -1;
             }
 
-            publishFlowDirectory(tempDirectory, makeFlowDirectoryName(_mxlDomain, uuidString));
+            auto const finalDir = makeFlowDirectoryName(_mxlDomain, uuidString);
+            try
+            {
+                publishFlowDirectory(tempDirectory, finalDir);
+            }
+            catch (std::exception const& e)
+            {
+                throw std::runtime_error(std::string("Failed to publish flow dir: ") + e.what());
+            }
 
             return flowData;
         }
@@ -186,7 +197,15 @@ namespace mxl::lib
             // Write the json file to disk.
             writeFlowDescriptor(tempDirectory, flowDef);
 
-            auto flowData = std::make_unique<ContinuousFlowData>(makeFlowDataFilePath(tempDirectory).string().c_str(), AccessMode::CREATE_READ_WRITE);
+            std::unique_ptr<ContinuousFlowData> flowData;
+            try
+            {
+               flowData = std::make_unique<ContinuousFlowData>(makeFlowDataFilePath(tempDirectory).string().c_str(), AccessMode::CREATE_READ_WRITE);
+            }
+            catch (std::exception const& e)
+            {
+                throw std::runtime_error(std::string("Failed to mmap continuous flow data: ") + e.what());
+            }
 
             auto& info = *flowData->flowInfo();
             info.version = 1;
@@ -199,9 +218,24 @@ namespace mxl::lib
             info.continuous.channelCount = channelCount;
             info.continuous.bufferLength = bufferLength;
 
-            flowData->openChannelBuffers(makeChannelDataFilePath(tempDirectory).string().c_str(), sampleWordSize);
+            try
+            {
+                flowData->openChannelBuffers(makeChannelDataFilePath(tempDirectory).string().c_str(), sampleWordSize);
+            }
+            catch (std::exception const& e)
+            {
+                throw std::runtime_error(std::string("Failed to open channel buffers: ") + e.what());
+            }
 
-            publishFlowDirectory(tempDirectory, makeFlowDirectoryName(_mxlDomain, uuidString));
+            auto const finalDir = makeFlowDirectoryName(_mxlDomain, uuidString);
+            try
+            {
+                publishFlowDirectory(tempDirectory, finalDir);
+            }
+            catch (std::exception const& e)
+            {
+                throw std::runtime_error(std::string("Failed to publish flow dir: ") + e.what());
+            }
 
             return flowData;
         }
@@ -226,17 +260,42 @@ namespace mxl::lib
         // Verify that the flow file exists.
         if (auto const flowFile = makeFlowDataFilePath(base); exists(flowFile))
         {
-            auto flowSegment = SharedMemoryInstance<Flow>{flowFile.string().c_str(), in_mode, 0U};
-            if (auto const flowFormat = flowSegment.get()->info.common.format; mxlIsDiscreteDataFormat(flowFormat))
+            SharedMemoryInstance<Flow> flowSegment;
+            try
             {
-                return openDiscreteFlow(base, std::move(flowSegment));
+                flowSegment = SharedMemoryInstance<Flow>(flowFile.string().c_str(), in_mode, 0U);
+            }
+            catch (std::exception const& e)
+            {
+                throw std::runtime_error(std::string("Failed to open flow data segment: ") + e.what());
+            }
+
+            auto const flowFormat = flowSegment.get()->info.common.format;
+            if (mxlIsDiscreteDataFormat(flowFormat))
+            {
+                try
+                {
+                    return openDiscreteFlow(base, std::move(flowSegment));
+                }
+                catch (std::exception const& e)
+                {
+                    throw std::runtime_error(std::string("Failed to open discrete flow: ") + e.what());
+                }
             }
             else if (mxlIsContinuousDataFormat(flowFormat))
             {
-                return openContinuousFlow(base, std::move(flowSegment));
+                try
+                {
+                    return openContinuousFlow(base, std::move(flowSegment));
+                }
+                catch (std::exception const& e)
+                {
+                    throw std::runtime_error(std::string("Failed to open continuous flow: ") + e.what());
+                }
             }
             else
             {
+                // This should never happen for a valid flow.
                 throw std::runtime_error("Attempt to open flow with unsupported data format.");
             }
         }
@@ -257,12 +316,24 @@ namespace mxl::lib
             auto const grainDir = makeGrainDirectoryName(flowDir);
             if (exists(grainDir) && is_directory(grainDir))
             {
-                // Open each grain
+                // Open each grain with per-item error handling
                 for (auto i = 0U; i < grainCount; ++i)
                 {
                     auto const grainPath = makeGrainDataFilePath(grainDir, i).string();
                     MXL_TRACE("Opening grain: {}", grainPath);
-                    flowData->emplaceGrain(grainPath.c_str(), 0U);
+
+                    try
+                    {
+                        flowData->emplaceGrain(grainPath.c_str(), /*payloadSize=*/0U);
+                    }
+                    catch (std::exception const& e)
+                    {
+                        throw std::runtime_error(std::string("Failed to open grain [") + std::to_string(i) + "]: " + e.what());
+                    }
+                    catch (...)
+                    {
+                        throw std::runtime_error(std::string("Failed to open grain [") + std::to_string(i) + "]: unknown error");
+                    }
                 }
             }
             else
@@ -279,7 +350,25 @@ namespace mxl::lib
         SharedMemoryInstance<Flow>&& sharedFlowInstance)
     {
         auto flowData = std::make_unique<ContinuousFlowData>(std::move(sharedFlowInstance));
-        flowData->openChannelBuffers(makeChannelDataFilePath(flowDir).string().c_str(), 0U);
+
+        // Verify that the channel‐buffers file actually exists before attempting to open it
+        auto const channelPath = makeChannelDataFilePath(flowDir);
+        if (!std::filesystem::exists(channelPath))
+        {
+            throw std::filesystem::filesystem_error(
+                "Channel buffer file not found.", channelPath, std::make_error_code(std::errc::no_such_file_or_directory));
+        }
+
+        // Open the channel buffers (may throw on I/O or mmap failure)
+        try
+        {
+            flowData->openChannelBuffers(channelPath.string().c_str(), /*payloadSize=*/0U);
+        }
+        catch (std::exception const& e)
+        {
+            throw std::runtime_error(std::string("Failed to open continuous channel buffers: ") + e.what());
+        }
+
         return flowData;
     }
 
@@ -295,7 +384,16 @@ namespace mxl::lib
             // Close the flow
             flowData.reset();
 
-            return deleteFlow(id);
+            // Attempt filesystem deletion, catching any errors
+            try
+            {
+                return deleteFlow(id);
+            }
+            catch (const std::exception& e)
+            {
+                MXL_ERROR("Failed to delete flow {}: {}", uuids::to_string(id), e.what());
+                return false;
+            }
         }
         return false;
     }
@@ -305,8 +403,23 @@ namespace mxl::lib
         auto uuid = uuids::to_string(flowId);
         MXL_TRACE("Delete flow: {}", uuid);
 
-        auto const base = std::filesystem::path{_mxlDomain};
-        return (remove_all(makeFlowDirectoryName(base, uuid)) != 0);
+        // Compute the flow directory path
+        const auto flowPath = makeFlowDirectoryName(_mxlDomain, uuid);
+        try
+        {
+            auto const removed = std::filesystem::remove_all(flowPath);
+            if (removed == 0)
+            {
+                MXL_WARN("Flow not found or already deleted: {}", uuid);
+                return false;
+            }
+            return true;
+        }
+        catch (const std::filesystem::filesystem_error& e)
+        {
+            MXL_ERROR("Error deleting flow {} at {}: {}", uuid, flowPath.string(), e.what());
+            return false;
+        }
     }
 
     void FlowManager::garbageCollect()
@@ -322,17 +435,30 @@ namespace mxl::lib
         auto flowIds = std::vector<uuids::uuid>{};
         if (exists(base) && is_directory(base))
         {
-            for (auto const& entry : std::filesystem::directory_iterator{_mxlDomain})
+            try
             {
-                if (is_directory(entry) && (entry.path().extension() == FLOW_DIRECTORY_NAME_SUFFIX))
+                for (auto const& entry : std::filesystem::directory_iterator{_mxlDomain})
                 {
-                    // this looks like a uuid. try to parse it an confirm it is valid.
-                    auto id = uuids::uuid::from_string(entry.path().stem().string());
-                    if (id.has_value())
+                    if (is_directory(entry) && (entry.path().extension() == FLOW_DIRECTORY_NAME_SUFFIX))
                     {
-                        flowIds.push_back(*id);
+                        // this looks like a uuid. try to parse it an confirm it is valid.
+                        auto id = uuids::uuid::from_string(entry.path().stem().string());
+                        if (id.has_value())
+                        {
+                            flowIds.push_back(*id);
+                        }
                     }
                 }
+            }
+            catch (std::filesystem::filesystem_error const& e)
+            {
+                // Propagate filesystem errors with extra context
+                throw std::filesystem::filesystem_error(std::string("Failed to iterate flow directory: ") + e.what(), e.path1(), e.code());
+            }
+            catch (std::exception const& e)
+            {
+                // Catch-all for any other unexpected errors (e.g. parsing issues)
+                throw std::runtime_error(std::string("Error listing flows: ") + e.what());
             }
         }
         else
