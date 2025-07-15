@@ -45,7 +45,7 @@ TEST_CASE("Video Flow : Wait for grain availability", "[mxl flows timing]")
     mxlFlowWriter writer;
     REQUIRE(mxlCreateFlowWriter(instanceWriter, flowId.c_str(), "", &writer) == MXL_STATUS_OK);
 
-    auto const readerGrainIndex = mxlGetCurrentHeadIndex(&fInfo.discrete.grainRate);
+    auto const readerGrainIndex = mxlGetCurrentIndex(&fInfo.discrete.grainRate);
     auto const frameDurationNs = 1000000000 * fInfo.discrete.grainRate.denominator / fInfo.discrete.grainRate.numerator;
     auto writerThread = std::thread{[readerGrainIndex, frameDurationNs, writer]
         {

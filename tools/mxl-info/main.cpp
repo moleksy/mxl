@@ -62,7 +62,7 @@ std::ostream& operator<<(std::ostream& os, FlowInfo const& info)
     }
 
     auto const now = mxlGetTime();
-    auto const currentIndex = mxlTimestampToHeadIndex(&info.discrete.grainRate, now);
+    auto const currentIndex = mxlTimestampToIndex(&info.discrete.grainRate, now);
     os << '\t' << fmt::format("{: >18}: {}", "Latency (grains)", currentIndex - info.discrete.headIndex) << '\n'
        << '\t' << fmt::format("{: >18}: {}", "Latency (ns)", now - info.common.lastWriteTime) << std::endl;
 
