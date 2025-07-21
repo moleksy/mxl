@@ -3,11 +3,11 @@
 #include <fstream>
 #include <ios>
 #include <stdexcept>
-#include <system_error>
 #include <unistd.h>
 #include <mxl/flow.h>
 #include <mxl/mxl.h>
 #include <mxl/time.h>
+#include <system_error>
 #include "Logging.hpp"
 #include "PathUtils.hpp"
 #include "SharedMemory.hpp"
@@ -145,7 +145,8 @@ namespace mxl::lib
             if (!std::filesystem::create_directory(grainDir))
             {
                 MXL_ERROR("FlowManager: Could not create grain directory '{}'", grainDir.string());
-                throw std::filesystem::filesystem_error("FlowManager: Could not create grain directory", grainDir, std::make_error_code(std::errc::io_error));
+                throw std::filesystem::filesystem_error(
+                    "FlowManager: Could not create grain directory", grainDir, std::make_error_code(std::errc::io_error));
             }
 
             for (auto i = std::size_t{0}; i < grainCount; ++i)
@@ -170,7 +171,8 @@ namespace mxl::lib
             catch (std::exception const& e)
             {
                 MXL_ERROR("FlowManager: Failed to publish flow directory from '{}' to '{}': {}", tempDirectory.string(), finalDir.string(), e.what());
-                throw std::filesystem::filesystem_error("FlowManager: Failed to publish flow directory", finalDir, std::make_error_code(std::errc::io_error));
+                throw std::filesystem::filesystem_error(
+                    "FlowManager: Failed to publish flow directory", finalDir, std::make_error_code(std::errc::io_error));
             }
 
             return flowData;
@@ -245,7 +247,10 @@ namespace mxl::lib
             }
             catch (std::exception const& e)
             {
-                MXL_ERROR("FlowManager: Failed to publish continuous flow directory from '{}' to '{}': {}", tempDirectory.string(), FinalDir.string(), e.what());
+                MXL_ERROR("FlowManager: Failed to publish continuous flow directory from '{}' to '{}': {}",
+                    tempDirectory.string(),
+                    FinalDir.string(),
+                    e.what());
                 throw std::runtime_error(std::string("FlowManager: Failed to publish flow dir: ") + e.what());
             }
 
@@ -281,7 +286,8 @@ namespace mxl::lib
             catch (std::exception const& e)
             {
                 MXL_ERROR("FlowManager: Failed to open flow data segment '{}': {}", flowFile.string(), e.what());
-                throw std::filesystem::filesystem_error("FlowManager: Failed to open flow data segment", flowFile, std::make_error_code(std::errc::io_error));
+                throw std::filesystem::filesystem_error(
+                    "FlowManager: Failed to open flow data segment", flowFile, std::make_error_code(std::errc::io_error));
             }
 
             auto const* flow = flowSegment.get();
@@ -290,7 +296,7 @@ namespace mxl::lib
                 MXL_ERROR("FlowManager: Failed to access flow data for '{}': invalid shared memory segment", uuid);
                 throw std::runtime_error("FlowManager: Failed to access flow data: invalid shared memory segment");
             }
-            
+
             auto const flowFormat = flow->info.common.format;
             if (mxlIsDiscreteDataFormat(flowFormat))
             {
@@ -301,7 +307,8 @@ namespace mxl::lib
                 catch (std::exception const& e)
                 {
                     MXL_ERROR("FlowManager: Failed to open discrete flow '{}': {}", uuid, e.what());
-                    throw std::filesystem::filesystem_error("FlowManager: Failed to open discrete flow", base, std::make_error_code(std::errc::io_error));
+                    throw std::filesystem::filesystem_error(
+                        "FlowManager: Failed to open discrete flow", base, std::make_error_code(std::errc::io_error));
                 }
             }
             else if (mxlIsContinuousDataFormat(flowFormat))
@@ -326,7 +333,8 @@ namespace mxl::lib
         else
         {
             MXL_ERROR("FlowManager: Flow file not found for '{}' at '{}'", uuid, flowFile.string());
-            throw std::filesystem::filesystem_error("FlowManager: Flow file not found", flowFile, std::make_error_code(std::errc::no_such_file_or_directory));
+            throw std::filesystem::filesystem_error(
+                "FlowManager: Flow file not found", flowFile, std::make_error_code(std::errc::no_such_file_or_directory));
         }
     }
 
@@ -354,14 +362,17 @@ namespace mxl::lib
                     catch (std::exception const& e)
                     {
                         MXL_ERROR("FlowManager: Failed to open grain [{}] for flow '{}': {}", i, flowDir.string(), e.what());
-                        throw std::filesystem::filesystem_error(std::string("FlowManager: Failed to open grain [") + std::to_string(i) + "]", 
-                            makeGrainDataFilePath(grainDir, i), std::make_error_code(std::errc::io_error));
+                        throw std::filesystem::filesystem_error(std::string("FlowManager: Failed to open grain [") + std::to_string(i) + "]",
+                            makeGrainDataFilePath(grainDir, i),
+                            std::make_error_code(std::errc::io_error));
                     }
                     catch (...)
                     {
                         MXL_ERROR("FlowManager: Failed to open grain [{}] for flow '{}': unknown error", i, flowDir.string());
-                        throw std::filesystem::filesystem_error(std::string("FlowManager: Failed to open grain [") + std::to_string(i) + "]: unknown error", 
-                            makeGrainDataFilePath(grainDir, i), std::make_error_code(std::errc::io_error));
+                        throw std::filesystem::filesystem_error(
+                            std::string("FlowManager: Failed to open grain [") + std::to_string(i) + "]: unknown error",
+                            makeGrainDataFilePath(grainDir, i),
+                            std::make_error_code(std::errc::io_error));
                     }
                 }
             }
@@ -496,7 +507,8 @@ namespace mxl::lib
             {
                 // Propagate filesystem errors with extra context
                 MXL_ERROR("FlowManager: Failed to iterate flow directory: {}", e.what());
-                throw std::filesystem::filesystem_error(std::string("FlowManager: Failed to iterate flow directory: ") + e.what(), e.path1(), e.code());
+                throw std::filesystem::filesystem_error(
+                    std::string("FlowManager: Failed to iterate flow directory: ") + e.what(), e.path1(), e.code());
             }
             catch (std::exception const& e)
             {
@@ -508,7 +520,8 @@ namespace mxl::lib
         else
         {
             MXL_ERROR("FlowManager: Base directory not found: '{}'", base.string());
-            throw std::filesystem::filesystem_error("FlowManager: Base directory not found.", base, std::make_error_code(std::errc::no_such_file_or_directory));
+            throw std::filesystem::filesystem_error(
+                "FlowManager: Base directory not found.", base, std::make_error_code(std::errc::no_such_file_or_directory));
         }
 
         return flowIds;
