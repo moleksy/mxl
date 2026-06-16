@@ -27,6 +27,7 @@ target_sources(mxl-fabrics-ofi-tests
         PRIVATE
             test_Address.cpp
             test_Domain.cpp
+            test_ImmData.cpp
             test_Provider.cpp
             test_Region.cpp
     )

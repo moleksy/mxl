@@ -35,7 +35,7 @@ namespace mxl::lib::fabrics::ofi
 
         auto const localRegion = _localRegions[localIndex % _localRegions.size()].sub(localOffset, localSize);
         auto const remoteRegion = _remoteInfo.remoteRegions[remoteIndex % _remoteInfo.remoteRegions.size()].sub(remoteOffset, remoteSize);
-        auto const remoteSlot = remoteIndex % _remoteInfo.remoteRegions.size();
+        auto const remoteSlot = static_cast<std::uint16_t>(remoteIndex % _remoteInfo.remoteRegions.size());
 
         _pending += ep.write(_token, localRegion, remoteRegion, destAddr, ImmDataGrain{remoteSlot, sliceRange.end()}.data());
     }

@@ -13,10 +13,9 @@ namespace mxl::lib::fabrics::ofi
         _inner = data;
     }
 
-    ImmDataGrain::ImmDataGrain(std::uint64_t index, std::uint16_t sliceIndex) noexcept
+    ImmDataGrain::ImmDataGrain(std::uint16_t ringBufferSlot, std::uint16_t sliceIndex) noexcept
     {
-        auto ringBufferIndex = static_cast<std::uint16_t>(index);
-        _inner = std::bit_cast<std::uint32_t>(Unpacked{.ringBufferSlot = ringBufferIndex, .sliceIndex = sliceIndex});
+        _inner = std::bit_cast<std::uint32_t>(Unpacked{.ringBufferSlot = ringBufferSlot, .sliceIndex = sliceIndex});
     }
 
     ImmDataGrain::Unpacked ImmDataGrain::unpack() const noexcept

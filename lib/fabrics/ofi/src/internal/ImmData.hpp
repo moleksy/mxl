@@ -27,12 +27,17 @@ namespace mxl::lib::fabrics::ofi
          */
         ImmDataGrain(std::uint32_t data) noexcept;
 
-        /** \brief Create immediate data from ring buffer index and slice index.
+        /** \brief Create immediate data from ring buffer slot and slice index.
          *
-         * \param index The ring buffer index.
-         * \param sliceIndex The slice index within the ring buffer.
+         * The ring buffer slot must be pre-computed by the caller (typically
+         * as \c grainIndex \% \c grainCount). Using a \c uint16_t parameter
+         * prevents silent truncation of 64-bit grain indices that would
+         * otherwise wrap after 65 536 grains (~18 minutes at 60 fps).
+         *
+         * \param ringBufferSlot The ring buffer slot index (grainIndex % grainCount).
+         * \param sliceIndex The slice index within the grain.
          */
-        ImmDataGrain(std::uint64_t index, std::uint16_t sliceIndex) noexcept;
+        ImmDataGrain(std::uint16_t ringBufferSlot, std::uint16_t sliceIndex) noexcept;
 
         /** \brief Unpack the immediate data into ring buffer index and slice index.
          *
